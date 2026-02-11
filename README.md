@@ -17,6 +17,11 @@
 </p>
 
 <p align="center">
+  <img src="screenshots/history.png" width="400" alt="History Page" />
+  <img src="screenshots/upload_result.png" width="400" alt="Upload and Result" />
+</p>
+
+<p align="center">
   <a href="#-architecture">Architecture</a> •
   <a href="#-features">Features</a> •
   <a href="#-quick-start">Quick Start</a> •
