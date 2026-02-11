@@ -51,6 +51,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser
 
 WORKDIR /app
+ENV PYTHONPATH=/app
 
 # What: Copy installed Python packages from builder stage
 # Why: Only copies the site-packages, not build tools (smaller image)

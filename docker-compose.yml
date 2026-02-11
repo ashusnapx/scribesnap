@@ -99,6 +99,7 @@ services:
 
       # Logging
       LOG_LEVEL: INFO
+      PYTHONPATH: /app
 
     ports:
       - "8000:8000"
@@ -127,26 +128,26 @@ services:
   # ── Next.js Frontend ──────────────────────────────────────────────────
   # What: React frontend for uploading images and viewing parsed notes
   # Note: Frontend Dockerfile should be created when implementing Phase 2
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: scribesnap-frontend
-  #   restart: unless-stopped
-  #   depends_on:
-  #     backend:
-  #       condition: service_healthy
-  #   environment:
-  #     NEXT_PUBLIC_API_URL: http://localhost:8000
-  #   ports:
-  #     - "3000:3000"
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 512M
-  #         cpus: "0.5"
-  #   networks:
-  #     - frontend-network
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: scribesnap-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    networks:
+      - frontend-network
 
 # ── Volumes ─────────────────────────────────────────────────────────────
 # What: Named volumes for persistent data storage

@@ -70,9 +70,9 @@ class Settings(BaseSettings):
     )
 
     # What: Which Gemini model to use for handwriting recognition
-    # Options: gemini-1.5-flash (faster, cheaper), gemini-1.5-pro (higher quality)
+    # Options: gemini-2.5-flash-lite (faster, cheaper), gemini-1.5-pro (higher quality)
     # Trade-off: flash is ~10x cheaper but may struggle with messy handwriting
-    gemini_model: str = Field(default="gemini-1.5-flash")
+    gemini_model: str = Field(default="gemini-2.5-flash-lite")
 
     # ── File Storage ──────────────────────────────────────────────────────
     # What: Root directory for uploaded images, relative to backend CWD

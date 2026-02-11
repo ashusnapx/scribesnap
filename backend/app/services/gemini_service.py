@@ -18,7 +18,7 @@ Resilience Strategy:
 Why Google Gemini:
     - Free tier: 15 requests/minute, 1 million tokens/day (sufficient for dev/small scale)
     - Strong vision: Handles diverse handwriting styles, including cursive
-    - Fast: gemini-1.5-flash typically responds in 2-5 seconds
+    - Fast: gemini-2.5-flash-lite typically responds in 2-5 seconds
     Alternative considered: GPT-4V (better accuracy but expensive), Tesseract (free but poor
     handwriting accuracy — designed for printed text)
 """

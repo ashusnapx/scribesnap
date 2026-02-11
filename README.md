@@ -223,7 +223,7 @@ npm run dev
 | ---------------------- | -------- | ---------------------------------------------- | ------------------------------------------------------------------------------ |
 | `DATABASE_URL`         | ✅       | `postgresql+asyncpg://...localhost/scribesnap` | Async PostgreSQL connection string                                             |
 | `GEMINI_API_KEY`       | ✅       | —                                              | Google Gemini API key ([get one free](https://aistudio.google.com/app/apikey)) |
-| `GEMINI_MODEL`         | ❌       | `gemini-1.5-flash`                             | Model variant (`flash` = fast/cheap, `pro` = higher quality)                   |
+| `GEMINI_MODEL`         | ❌       | `gemini-2.5-flash-lite`                        | Model variant (`flash` = fast/cheap, `pro` = higher quality)                   |
 | `STORAGE_ROOT`         | ❌       | `./storage`                                    | Directory for uploaded images                                                  |
 | `MAX_FILE_SIZE`        | ❌       | `10485760` (10MB)                              | Maximum upload file size in bytes                                              |
 | `CORS_ORIGINS`         | ❌       | `http://localhost:3000`                        | Comma-separated allowed origins                                                |
