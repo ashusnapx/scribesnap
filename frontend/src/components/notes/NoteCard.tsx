@@ -7,7 +7,7 @@ import { Clock, FileText, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NoteListItem } from "@/lib/types";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, getApiUrl } from "@/lib/utils";
 
 interface NoteCardProps {
   note: NoteListItem;
@@ -27,7 +27,7 @@ export function NoteCard({ note, index = 0 }: NoteCardProps) {
           {/* Image Thumbnail Area */}
           <div className='relative h-48 w-full bg-muted overflow-hidden'>
             <img
-              src={note.image_url}
+              src={getApiUrl(note.image_url)}
               alt='Note thumbnail'
               className='w-full h-full object-cover transition-transform duration-500 group-hover:scale-105'
               loading='lazy'

@@ -247,6 +247,7 @@ class NoteService:
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
         sort: str = "created_at_desc",
+        q: Optional[str] = None,
     ) -> NoteListResponse:
         """
         List notes with cursor-based pagination and optional date filtering.
@@ -320,6 +321,11 @@ class NoteService:
                 except ValueError:
                     pass
 
+            # Apply search filter
+            if q:
+                # Case-insensitive partial match on parsed_text
+                query = query.where(Note.parsed_text.ilike(f"%{q}%"))
+
             # Apply sort order
             if sort == "created_at_asc":
                 query = query.order_by(asc(Note.created_at))
@@ -347,6 +353,9 @@ class NoteService:
                     count_query = count_query.where(Note.created_at <= datetime.fromisoformat(to_date))
                 except ValueError:
                     pass
+
+            if q:
+                count_query = count_query.where(Note.parsed_text.ilike(f"%{q}%"))
 
             count_result = await db.execute(count_query)
             total_count = count_result.scalar() or 0

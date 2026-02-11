@@ -5,6 +5,22 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Resolves a backend URL path into a full URL.
+ * Falls back to localhost:8000 if NEXT_PUBLIC_API_URL is not set.
+ */
+export function getApiUrl(path: string) {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  // Remove trailing slash from base and leading slash from path to be safe
+  const cleanBase = baseUrl.replace(/\/$/, "");
+  const cleanPath = path.replace(/^\//, "");
+
+  return `${cleanBase}/${cleanPath}`;
+}
+
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat("en-US", {

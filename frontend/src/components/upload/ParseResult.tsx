@@ -3,18 +3,25 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import {
+  Download,
+  Share2,
   Check,
   Copy,
   FileText,
-  ArrowLeft,
   RefreshCw,
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Note, ParseResponse } from "@/lib/types";
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard, getApiUrl } from "@/lib/utils";
 
 interface ParseResultProps {
   data: ParseResponse;
@@ -32,6 +39,36 @@ export function ParseResult({ data, onReset }: ParseResultProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Failed to copy text");
+    }
+  };
+
+  const handleDownload = (format: "txt" | "md") => {
+    const element = document.createElement("a");
+    const file = new Blob([data.parsed_text], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = `scribesnap-note-${data.note.id}.${format}`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success(`Downloaded as .${format}`);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "ScribeSnap Note",
+          text: data.parsed_text,
+          url: window.location.href,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          toast.error("Failed to share");
+        }
+      }
+    } else {
+      handleCopy();
+      toast.info("Web Share not supported - copied to clipboard instead");
     }
   };
 
@@ -83,7 +120,7 @@ export function ParseResult({ data, onReset }: ParseResultProps) {
           <Card className='flex-1 overflow-hidden bg-muted/30 border-muted p-2 flex items-center justify-center relative group'>
             <div className='absolute inset-0 bg-pattern opacity-5' />
             <img
-              src={data.note.image_url}
+              src={getApiUrl(data.note.image_url)}
               alt='Original handwritten note'
               className='max-w-full max-h-full object-contain rounded-lg shadow-sm transition-transform duration-500 group-hover:scale-[1.02]'
             />
@@ -102,17 +139,50 @@ export function ParseResult({ data, onReset }: ParseResultProps) {
               <Sparkles className='w-4 h-4 text-primary' />
               <span>Extracted Text</span>
             </div>
-            <Button
-              variant='outline'
-              size='sm'
-              className='gap-2 rounded-full h-8'
-              onClick={handleCopy}
-            >
-              {copied ?
-                <Check className='w-3.5 h-3.5' />
-              : <Copy className='w-3.5 h-3.5' />}
-              {copied ? "Copied" : "Copy"}
-            </Button>
+            <div className='flex gap-2'>
+              <Button
+                variant='outline'
+                size='sm'
+                className='gap-2 rounded-full h-8'
+                onClick={handleShare}
+              >
+                <Share2 className='w-3.5 h-3.5' />
+                Share
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='gap-2 rounded-full h-8'
+                  >
+                    <Download className='w-3.5 h-3.5' />
+                    Download
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='end'>
+                  <DropdownMenuItem onClick={() => handleDownload("txt")}>
+                    Plain Text (.txt)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownload("md")}>
+                    Markdown (.md)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant='outline'
+                size='sm'
+                className='gap-2 rounded-full h-8'
+                onClick={handleCopy}
+              >
+                {copied ?
+                  <Check className='w-3.5 h-3.5' />
+                : <Copy className='w-3.5 h-3.5' />}
+                {copied ? "Copied" : "Copy"}
+              </Button>
+            </div>
           </div>
 
           <Card className='flex-1 relative group overflow-hidden border-primary/20 bg-background/50 backdrop-blur-sm'>

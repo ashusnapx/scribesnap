@@ -74,6 +74,10 @@ async def list_notes(
         default="created_at_desc",
         description="Sort order: 'created_at_desc' (newest first) or 'created_at_asc' (oldest first)",
     ),
+    q: str | None = Query(
+        default=None,
+        description="Search query: filter notes by content in parsed text",
+    ),
     db: AsyncSession = Depends(get_db_session),
 ) -> NoteListResponse:
     """
@@ -100,6 +104,7 @@ async def list_notes(
         from_date=from_date,
         to_date=to_date,
         sort=sort,
+        q=q,
     )
 
     # Set total count in response header for pagination UI

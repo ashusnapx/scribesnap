@@ -10,6 +10,7 @@ interface UseNoteHistoryOptions {
   fromDate?: string;
   toDate?: string;
   sort?: "created_at_desc" | "created_at_asc";
+  q?: string;
 }
 
 export function useNoteHistory({
@@ -17,15 +18,17 @@ export function useNoteHistory({
   fromDate,
   toDate,
   sort = "created_at_desc",
+  q,
 }: UseNoteHistoryOptions = {}) {
   return useInfiniteQuery<NoteListResponse, ApiError>({
-    queryKey: ["notes", { limit, fromDate, toDate, sort }],
+    queryKey: ["notes", { limit, fromDate, toDate, sort, q }],
     queryFn: async ({ pageParam }) => {
       const params: Record<string, any> = {
         limit,
         sort,
         from_date: fromDate,
         to_date: toDate,
+        q,
       };
 
       if (pageParam) {

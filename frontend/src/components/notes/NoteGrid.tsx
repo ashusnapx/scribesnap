@@ -10,14 +10,17 @@ import { useNoteHistory } from "@/hooks/useNoteHistory";
 import { NoteCard } from "./NoteCard";
 import { EmptyState } from "./EmptyState";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks/use-debounce";
 // import { DatePickerWithRange } from "@/components/ui/date-range-picker" // TODO: Add date picker later if needed
 
 export function NoteGrid() {
   const [view, setView] = React.useState<"grid" | "list">("grid");
+  const [search, setSearch] = React.useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const { ref, inView } = useInView();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
-    useNoteHistory();
+    useNoteHistory({ q: debouncedSearch });
 
   // Infinite scroll trigger
   React.useEffect(() => {
@@ -58,6 +61,8 @@ export function NoteGrid() {
           <Search className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
           <Input
             placeholder='Search notes...'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             className='pl-9 bg-muted/50 border-transparent focus:border-primary/50 focus:bg-background transition-all'
           />
         </div>

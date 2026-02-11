@@ -21,14 +21,23 @@ import {
   Share2,
   Sparkles,
   AlertTriangle,
+  Check,
+  Copy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { NoteListItem } from "@/lib/types"; // Using NoteListItem for better type safety
+import { Note } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatRelativeTime, formatDate } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { formatDate, getApiUrl, copyToClipboard } from "@/lib/utils";
 
 export default function NoteDetailPage() {
   const params = useParams();
@@ -41,9 +50,55 @@ export default function NoteDetailPage() {
     error,
   } = useQuery({
     queryKey: ["note", id],
-    queryFn: () => api.get<any>(`/api/notes/${id}`), // Casting any for quick fix, should be Note type
+    queryFn: () => api.get<Note>(`/api/notes/${id}`),
     retry: 1,
   });
+
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    if (!note) return;
+    try {
+      await copyToClipboard(note.parsed_text);
+      setCopied(true);
+      toast.success("Text copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy text");
+    }
+  };
+
+  const handleDownload = (format: "txt" | "md") => {
+    if (!note) return;
+    const element = document.createElement("a");
+    const file = new Blob([note.parsed_text], { type: "text/plain" });
+    element.href = URL.createObjectURL(file);
+    element.download = `scribesnap-note-${note.id}.${format}`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success(`Downloaded as .${format}`);
+  };
+
+  const handleShare = async () => {
+    if (!note) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "ScribeSnap Note",
+          text: note.parsed_text,
+          url: window.location.href,
+        });
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          toast.error("Failed to share");
+        }
+      }
+    } else {
+      handleCopy();
+      toast.info("Web Share not supported - copied to clipboard instead");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -79,6 +134,8 @@ export default function NoteDetailPage() {
       </div>
     );
   }
+
+  if (!note) return null;
 
   return (
     <motion.div
@@ -122,7 +179,7 @@ export default function NoteDetailPage() {
             <div className='absolute inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02]' />
 
             <img
-              src={note.image_url}
+              src={getApiUrl(note.image_url)}
               alt='Original note'
               className='max-w-full max-h-full object-contain rounded-lg shadow-sm'
             />
@@ -137,11 +194,47 @@ export default function NoteDetailPage() {
               Parsed Text
             </h2>
             <div className='flex gap-2'>
-              <Button variant='outline' size='sm'>
-                <Download className='w-4 h-4 mr-2' /> Download
+              <Button
+                variant='outline'
+                size='sm'
+                className='gap-2 rounded-full h-8'
+                onClick={handleShare}
+              >
+                <Share2 className='w-3.5 h-3.5' />
+                Share
               </Button>
-              <Button variant='outline' size='sm'>
-                <Share2 className='w-4 h-4 mr-2' /> Share
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='gap-2 rounded-full h-8'
+                  >
+                    <Download className='w-3.5 h-3.5' />
+                    Download
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='end'>
+                  <DropdownMenuItem onClick={() => handleDownload("txt")}>
+                    Plain Text (.txt)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownload("md")}>
+                    Markdown (.md)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant='outline'
+                size='sm'
+                className='gap-2 rounded-full h-8'
+                onClick={handleCopy}
+              >
+                {copied ?
+                  <Check className='w-3.5 h-3.5' />
+                : <Copy className='w-3.5 h-3.5' />}
+                {copied ? "Copied" : "Copy"}
               </Button>
             </div>
           </div>
