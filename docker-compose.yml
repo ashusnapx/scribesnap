@@ -1,0 +1,169 @@
+# =============================================================================
+# ScribeSnap Docker Compose — Development Environment
+# =============================================================================
+#
+# What:  Defines all services needed to run ScribeSnap locally.
+# Why:   One command to start everything: `docker-compose up`
+# How:   Three services: PostgreSQL + FastAPI Backend + Next.js Frontend
+# When:  Local development and testing.
+#
+# Architecture:
+#   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+#   │  Frontend   │────▶│  Backend    │────▶│  PostgreSQL │
+#   │  :3000      │     │  :8000      │     │  :5432      │
+#   │  (Next.js)  │     │  (FastAPI)  │     │  (pg16)     │
+#   └─────────────┘     └─────────────┘     └─────────────┘
+#         ▲                    ▲
+#         │                    │
+#       Browser              API calls
+#
+# Usage:
+#   docker-compose up -d          # Start all services in background
+#   docker-compose up -d --build  # Rebuild images and start
+#   docker-compose logs -f        # Follow all logs
+#   docker-compose down           # Stop all services
+#   docker-compose down -v        # Stop and remove volumes (data loss!)
+#
+# =============================================================================
+
+services:
+  # ── PostgreSQL Database ───────────────────────────────────────────────
+  # What: Relational database for storing note records
+  # Why PostgreSQL: Best open-source RDBMS — robust, feature-rich, UUID support
+  postgres:
+    image: postgres:16-alpine
+    container_name: scribesnap-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: scribesnap
+      POSTGRES_USER: scribesnap
+      POSTGRES_PASSWORD: scribesnap_dev_password
+
+    ports:
+      # Expose to host for direct DB access during development
+      # Why: Enables pgAdmin, DBeaver, and psql access for debugging
+      - "5432:5432"
+
+    volumes:
+      # Named volume for data persistence across container restarts
+      # Why named (not bind mount): Docker manages the volume lifecycle
+      # WARNING: `docker-compose down -v` deletes this volume!
+      - postgres_data:/var/lib/postgresql/data
+
+    # Health check: Ensures PostgreSQL is ready to accept connections
+    # Why: Backend should not start until DB is ready
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scribesnap -d scribesnap"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    # Resource limits: Prevent runaway memory usage
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+    networks:
+      - backend-network
+
+  # ── FastAPI Backend ───────────────────────────────────────────────────
+  # What: Python API server handling image uploads and Gemini integration
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: scribesnap-backend
+    restart: unless-stopped
+
+    # Wait for PostgreSQL to be healthy before starting
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      # Database connection — uses Docker's internal DNS (service name = hostname)
+      DATABASE_URL: postgresql+asyncpg://scribesnap:scribesnap_dev_password@postgres:5432/scribesnap
+
+      # Gemini API key — MUST be set in .env file
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+
+      # File storage — mapped to Docker volume
+      STORAGE_ROOT: /app/storage
+
+      # CORS — allow frontend origin
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+
+      # Logging
+      LOG_LEVEL: INFO
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      # Persist uploaded images across container restarts
+      - upload_storage:/app/storage
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+
+    networks:
+      - backend-network
+      - frontend-network
+
+  # ── Next.js Frontend ──────────────────────────────────────────────────
+  # What: React frontend for uploading images and viewing parsed notes
+  # Note: Frontend Dockerfile should be created when implementing Phase 2
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: scribesnap-frontend
+  #   restart: unless-stopped
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
+  #   environment:
+  #     NEXT_PUBLIC_API_URL: http://localhost:8000
+  #   ports:
+  #     - "3000:3000"
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 512M
+  #         cpus: "0.5"
+  #   networks:
+  #     - frontend-network
+
+# ── Volumes ─────────────────────────────────────────────────────────────
+# What: Named volumes for persistent data storage
+# Why: Data survives container restarts but NOT `docker-compose down -v`
+volumes:
+  postgres_data:
+    name: scribesnap-postgres-data
+  upload_storage:
+    name: scribesnap-uploads
+
+# ── Networks ────────────────────────────────────────────────────────────
+# What: Isolated networks for service communication
+# Why: Frontend can't access database directly (defense in depth)
+#   - backend-network: postgres ↔ backend only
+#   - frontend-network: frontend ↔ backend only
+networks:
+  backend-network:
+    name: scribesnap-backend
+  frontend-network:
+    name: scribesnap-frontend

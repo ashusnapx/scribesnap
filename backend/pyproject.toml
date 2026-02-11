@@ -1,0 +1,42 @@
+# What: Pytest configuration for the ScribeSnap backend test suite
+# Why:  Centralizes test settings (async mode, coverage, markers, warnings)
+# How:  pytest reads this file automatically from the project root
+# When: Every time you run `pytest` from the backend directory
+
+[tool.pytest.ini_options]
+
+# Enable async test support via pytest-asyncio
+# Why "auto": Automatically treats async test functions as asyncio tests
+# Alternative: "strict" — requires explicit @pytest.mark.asyncio on each test
+asyncio_mode = "auto"
+
+# Minimum Python version for running tests
+minversion = "7.0"
+
+# Default command-line options applied to every test run
+# -v:     Verbose output (shows individual test names)
+# --tb=short: Short traceback format (enough to identify failures)
+# -x:     Stop on first failure (faster feedback during development)
+addopts = "-v --tb=short"
+
+# Test file discovery patterns
+# Why: Ensures pytest finds our test files in the tests/ directory
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# Custom markers for selective test execution
+# Usage: pytest -m "unit" (run only unit tests)
+# Usage: pytest -m "not slow" (skip slow tests)
+markers = [
+    "unit: Unit tests (fast, no external dependencies)",
+    "integration: Integration tests (require database or external services)",
+    "slow: Tests that take >5 seconds (e.g., real API calls)",
+]
+
+# Suppress known warnings from third-party libraries
+filterwarnings = [
+    "ignore::DeprecationWarning:sqlalchemy.*",
+    "ignore::DeprecationWarning:pydantic.*",
+]

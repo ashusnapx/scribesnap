@@ -1,0 +1,38 @@
+# ============================================================================
+# ScribeSnap Backend Dependencies
+# Why pinned: Ensures reproducible builds across environments.
+# How to update: pip install <pkg> --upgrade && pip freeze | grep <pkg>
+# ============================================================================
+
+# --- Web Framework ---
+fastapi==0.115.6            # Why: Best-in-class async Python API framework with auto OpenAPI docs
+uvicorn[standard]==0.34.0   # Why: ASGI server; [standard] adds uvloop + httptools for performance
+python-multipart==0.0.20    # Why: Required by FastAPI for multipart/form-data file uploads
+
+# --- Database ---
+sqlalchemy[asyncio]==2.0.36 # Why: ORM with async support via asyncio extra; 2.0+ for modern API
+asyncpg==0.30.0             # Why: Fastest async PostgreSQL driver for Python
+alembic==1.14.1             # Why: Database migration tool; integrates with SQLAlchemy models
+
+# --- Configuration ---
+pydantic-settings==2.7.1    # Why: Type-safe env var loading with validation; extends Pydantic
+
+# --- Google Gemini ---
+google-generativeai==0.8.4  # Why: Official Google Gemini SDK for vision-based text extraction
+
+# --- Resilience ---
+tenacity==9.0.0             # Why: Flexible retry library with exponential backoff, jitter, decorators
+
+# --- File Handling ---
+python-magic==0.4.27        # Why: MIME type detection using libmagic (not just file extension)
+aiofiles==24.1.0            # Why: Async file I/O to avoid blocking the event loop during uploads
+Pillow==11.1.0              # Why: Image validation and thumbnail generation
+
+# --- Middleware ---
+starlette==0.41.3           # Why: Underlying ASGI toolkit for FastAPI; used for middleware
+
+# --- Testing ---
+pytest==8.3.4               # Why: Industry-standard Python test framework
+pytest-asyncio==0.25.0      # Why: Enables async test functions with pytest
+pytest-cov==6.0.0           # Why: Coverage reporting to identify untested code paths
+httpx==0.28.1               # Why: Async HTTP client for testing FastAPI with TestClient
