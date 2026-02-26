@@ -26,7 +26,7 @@ tenacity==9.0.0             # Why: Flexible retry library with exponential backo
 # --- File Handling ---
 python-magic==0.4.27        # Why: MIME type detection using libmagic (not just file extension)
 aiofiles==24.1.0            # Why: Async file I/O to avoid blocking the event loop during uploads
-Pillow==11.1.0              # Why: Image validation and thumbnail generation
+Pillow==12.1.1              # Why: Image validation and thumbnail generation
 
 # --- Middleware ---
 starlette==0.41.3           # Why: Underlying ASGI toolkit for FastAPI; used for middleware
