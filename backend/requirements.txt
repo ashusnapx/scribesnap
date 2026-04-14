@@ -32,7 +32,7 @@ Pillow==11.1.0              # Why: Image validation and thumbnail generation
 starlette==0.41.3           # Why: Underlying ASGI toolkit for FastAPI; used for middleware
 
 # --- Testing ---
-pytest==8.3.4               # Why: Industry-standard Python test framework
+pytest==9.0.3               # Why: Industry-standard Python test framework
 pytest-asyncio==0.25.0      # Why: Enables async test functions with pytest
 pytest-cov==6.0.0           # Why: Coverage reporting to identify untested code paths
 httpx==0.28.1               # Why: Async HTTP client for testing FastAPI with TestClient
